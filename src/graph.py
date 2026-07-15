@@ -101,15 +101,16 @@ def get_vectorstore():
         )
 
         if qdrant_url:
-            print("🌐 Connecting to Qdrant Cloud...")
+            print("🌐 Connecting to Qdrant Cloud...", flush=True)
             client = QdrantClient(url=qdrant_url, api_key=qdrant_api_key)
         else:
             if not os.path.exists(QDRANT_DIR):
+                print(f"❌ QDRANT LOCAL DIRECTORY NOT FOUND: {QDRANT_DIR}", flush=True)
                 raise FileNotFoundError(
                     f"Qdrant store not found at: {QDRANT_DIR}\n"
                     "Run: python src/data.py  to build it first."
                 )
-            print("💾 Connecting to local Qdrant database...")
+            print("💾 Connecting to local Qdrant database...", flush=True)
             client = QdrantClient(path=QDRANT_DIR)
 
         _vectorstore = QdrantVectorStore(
@@ -386,6 +387,7 @@ async def retriever_node(state: GraphState) -> GraphState:
 
         return {**state, "documents": final_docs}
     except Exception as e:
+        print(f"❌ RETRIEVAL EXCEPTION IN RETRIEVER NODE: {e}", flush=True)
         import traceback
         traceback.print_exc()
         return {**state, "documents": [], "error": f"Retrieval error: {str(e)}"}
