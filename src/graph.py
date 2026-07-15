@@ -20,8 +20,6 @@ from langchain_core.documents import Document
 from langgraph.graph import StateGraph, END
 from dotenv import load_dotenv
 load_dotenv()
-from rank_bm25 import BM25Okapi
-from sentence_transformers import CrossEncoder
 
 # ── Configuration ──────────────────────────────────────────────
 BASE_DIR        = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -124,6 +122,7 @@ def get_vectorstore():
 def get_bm25_index():
     global _bm25_index, _all_documents
     if _bm25_index is None:
+        from rank_bm25 import BM25Okapi
         vs = get_vectorstore()
         client = vs.client
         
@@ -159,6 +158,7 @@ def get_bm25_index():
 def get_cross_encoder():
     global _cross_encoder
     if _cross_encoder is None:
+        from sentence_transformers import CrossEncoder
         print("⚡ Loading Cross-Encoder: ms-marco-MiniLM-L-6-v2...")
         _cross_encoder = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2", device="cpu")
         print("✅ Cross-Encoder loaded!")
@@ -339,51 +339,60 @@ async def retriever_node(state: GraphState) -> GraphState:
                 break
 
     try:
-        # 1. Semantic Retrieval (Dense Vector Search)
-        k_dense = 15 if retries > 0 else 10
-        dense_docs = vs.similarity_search(query, k=k_dense)
-        
-        # 2. Lexical Retrieval (BM25 Keyword Search)
-        bm25, all_docs = get_bm25_index()
-        tokenized_query = query.lower().split()
-        bm25_scores = bm25.get_scores(tokenized_query)
-        k_sparse = 15 if retries > 0 else 10
-        top_indices = sorted(range(len(bm25_scores)), key=lambda i: bm25_scores[i], reverse=True)[:k_sparse]
-        sparse_docs = [all_docs[i] for i in top_indices if bm25_scores[i] > 0]
-        
-        # 3. Merge Candidate Pools (Union deduplicated by page_content + source_pdf)
-        merged_candidates = []
-        seen_contents = set()
-        
-        for doc in (dense_docs + sparse_docs):
-            content_key = (doc.page_content.strip(), doc.metadata.get("source_pdf", ""))
-            if content_key not in seen_contents:
-                seen_contents.add(content_key)
-                merged_candidates.append(doc)
-                
-        # 4. Cross-Encoder Re-ranking
-        if merged_candidates:
-            cross_encoder = get_cross_encoder()
-            pairs = [[query, doc.page_content] for doc in merged_candidates]
-            scores = cross_encoder.predict(pairs)
-            ranked_docs = [doc for _, doc in sorted(zip(scores, merged_candidates), key=lambda pair: pair[0], reverse=True)]
-            final_docs = ranked_docs[:5]  # limit to top 5 chunks
+        is_production = os.environ.get("ENVIRONMENT", "development") == "production"
+
+        if is_production:
+            # 1. Semantic Retrieval (Dense Vector Search)
+            # In production, we limit memory by bypassing BM25 and CrossEncoder reranker
+            print("💾 Production Mode: Semantic Retrieval only (bypassing BM25 and Cross-Encoder to fit in 512MB RAM)", flush=True)
+            k_dense = 5
+            final_docs = vs.similarity_search(query, k=k_dense)
         else:
-            final_docs = []
+            # 1. Semantic Retrieval (Dense Vector Search)
+            k_dense = 15 if retries > 0 else 10
+            dense_docs = vs.similarity_search(query, k=k_dense)
+            
+            # 2. Lexical Retrieval (BM25 Keyword Search)
+            bm25, all_docs = get_bm25_index()
+            tokenized_query = query.lower().split()
+            bm25_scores = bm25.get_scores(tokenized_query)
+            k_sparse = 15 if retries > 0 else 10
+            top_indices = sorted(range(len(bm25_scores)), key=lambda i: bm25_scores[i], reverse=True)[:k_sparse]
+            sparse_docs = [all_docs[i] for i in top_indices if bm25_scores[i] > 0]
+            
+            # 3. Merge Candidate Pools
+            merged_candidates = []
+            seen_contents = set()
+            
+            for doc in (dense_docs + sparse_docs):
+                content_key = (doc.page_content.strip(), doc.metadata.get("source_pdf", ""))
+                if content_key not in seen_contents:
+                    seen_contents.add(content_key)
+                    merged_candidates.append(doc)
+                    
+            # 4. Cross-Encoder Re-ranking
+            if merged_candidates:
+                cross_encoder = get_cross_encoder()
+                pairs = [[query, doc.page_content] for doc in merged_candidates]
+                scores = cross_encoder.predict(pairs)
+                ranked_docs = [doc for _, doc in sorted(zip(scores, merged_candidates), key=lambda pair: pair[0], reverse=True)]
+                final_docs = ranked_docs[:5]
+            else:
+                final_docs = []
 
         # Log final retrieved chunks to console
-        print(f"\n============================================================")
-        print(f"🔍 RETRIEVED CHUNKS ({len(final_docs)} re-ranked) for query: '{query}'")
-        print(f"============================================================")
+        print(f"\n============================================================", flush=True)
+        print(f"🔍 RETRIEVED CHUNKS ({len(final_docs)} chunks) for query: '{query}'", flush=True)
+        print(f"============================================================", flush=True)
         for idx, doc in enumerate(final_docs, 1):
             source = doc.metadata.get('law_name', doc.metadata.get('source_pdf', 'Unknown Source'))
             page   = doc.metadata.get('page', '?')
             dtype  = doc.metadata.get('doc_type', 'statute').upper()
-            print(f"\n[Chunk {idx}] | {dtype} | {source} (Page {page})")
-            print("-" * 60)
-            print(doc.page_content.strip())
-            print("-" * 60)
-        print(f"============================================================\n")
+            print(f"\n[Chunk {idx}] | {dtype} | {source} (Page {page})", flush=True)
+            print("-" * 60, flush=True)
+            print(doc.page_content.strip(), flush=True)
+            print("-" * 60, flush=True)
+        print(f"============================================================\n", flush=True)
 
         return {**state, "documents": final_docs}
     except Exception as e:
