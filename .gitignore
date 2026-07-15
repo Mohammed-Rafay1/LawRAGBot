@@ -1,0 +1,30 @@
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Database
+data/
+!data/.keep
+
+# IDEs
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*.swo
+__pycache__/
+*.pyc

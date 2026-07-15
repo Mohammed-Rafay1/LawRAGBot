@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Law Guide: AI Legal Advisor for Pakistani Law — Get accurate, cited legal guidance based on Pakistan's Constitution, PPC, CrPC, and more.">
+    <link rel="icon" href="data:,">
+    <title>Law Guide — AI Legal Advisor for Pakistan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <!-- ── Background Glow ── -->
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+
+    <!-- ── App Container ── -->
+    <div class="app-container">
+
+        <!-- ── Header ── -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo-icon">⚖️</div>
+                    <div class="logo-text">
+                        <h1>Law Guide</h1>
+                        <p class="tagline">AI Legal Advisor for Pakistani Law</p>
+                    </div>
+                </div>
+                <div class="header-badges">
+                    <span class="badge badge-secure">🔒 Private</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- ── Chat Area ── -->
+        <main class="chat-area" id="chatArea">
+
+            <!-- Welcome Message -->
+            <div class="welcome-card" id="welcomeCard">
+                <div class="welcome-icon">⚖️</div>
+                <h2>Welcome to Law Guide</h2>
+                <p>Your AI-powered legal advisor for Pakistani law. Ask me about:</p>
+                <div class="topic-grid">
+                    <button class="topic-btn"
+                        onclick="askTopic('What are my fundamental rights under the Constitution of Pakistan?')">
+                        <span class="topic-icon">📜</span>
+                        <span>Constitutional Rights</span>
+                    </button>
+                    <button class="topic-btn" onclick="askTopic('What is the procedure to file an FIR in Pakistan?')">
+                        <span class="topic-icon">🚔</span>
+                        <span>Filing an FIR</span>
+                    </button>
+                    <button class="topic-btn"
+                        onclick="askTopic('What are the legal requirements for divorce under Muslim Family Laws?')">
+                        <span class="topic-icon">👨‍👩‍👧</span>
+                        <span>Family Law</span>
+                    </button>
+                    <button class="topic-btn" onclick="askTopic('What is Section 420 of the Pakistan Penal Code?')">
+                        <span class="topic-icon">⚖️</span>
+                        <span>PPC Sections</span>
+                    </button>
+                    <button class="topic-btn"
+                        onclick="askTopic('How to register a company under the Companies Act 2017?')">
+                        <span class="topic-icon">🏢</span>
+                        <span>Company Law</span>
+                    </button>
+                    <button class="topic-btn"
+                        onclick="askTopic('What are the penalties for cybercrime under PECA 2025?')">
+                        <span class="topic-icon">💻</span>
+                        <span>Cybercrime (PECA)</span>
+                    </button>
+                </div>
+                <p class="welcome-note">Your queries are private and secure.</p>
+            </div>
+
+        </main>
+
+        <!-- ── Input Area ── -->
+        <footer class="input-area">
+            <div class="input-container">
+                <textarea id="userInput" placeholder="Ask your legal question... (e.g., 'What is Section 302 of PPC?')"
+                    rows="1" maxlength="2000"></textarea>
+                <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Send message">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </div>
+            <p class="input-disclaimer">Law Guide provides informational guidance only — not legal advice.</p>
+        </footer>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="/static/script.js"></script>
+</body>
+
+</html>

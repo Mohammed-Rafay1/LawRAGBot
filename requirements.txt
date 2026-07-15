@@ -1,0 +1,15 @@
+langchain
+langchain-community
+langchain-chroma
+langchain-huggingface
+langchain-groq
+langchain-qdrant
+langgraph
+qdrant-client
+chromadb
+sentence-transformers
+pypdf
+fastapi
+uvicorn[standard]
+httpx
+python-dotenv
