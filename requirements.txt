@@ -13,3 +13,4 @@ fastapi
 uvicorn[standard]
 httpx
 python-dotenv
+rank-bm25
